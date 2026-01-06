@@ -1,0 +1,18 @@
+[project]
+name = "srodbpatch"
+version = "0.1.0"
+description = "Generic Database Patch Management Tool"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "PyQt6>=6.6.0",
+    "mssql-python>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.17.0",
+]
+
+[tool.setuptools]
+py-modules = ["main"]
