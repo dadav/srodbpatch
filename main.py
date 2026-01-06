@@ -97,7 +97,38 @@ PATCHES = {
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 3436 AND 3440",
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 5409 AND 5409",
         ],
-    }
+    },
+    "Add Silk to All Players": {
+        "description": "Add 10,000 Silk to all active player accounts",
+        "backup_tables": ["_Char"],
+        "sql_statements": [
+            """INSERT INTO SRO_VT_ACCOUNT.dbo.SK_Silk (JID, silk_own, silk_gift, silk_point)
+SELECT JID, 10000, 0, 0
+FROM SRO_VT_ACCOUNT.dbo.TB_User
+WHERE JID NOT IN (SELECT JID FROM SRO_VT_ACCOUNT.dbo.SK_Silk)""",
+            """UPDATE SRO_VT_ACCOUNT.dbo.SK_Silk
+SET silk_own = silk_own + 10000
+WHERE JID IN (SELECT JID FROM SRO_VT_ACCOUNT.dbo.TB_User)""",
+        ],
+    },
+    "Add gold to all characters": {
+        "description": "Add 99.000.000 gold to all characters",
+        "backup_tables": ["_Char"],
+        "sql_statements": [
+            "UPDATE dbo._Char SET RemainGold = RemainGold + 99000000 WHERE CharID > 0",
+        ],
+    },
+    "Reset Character Stats": {
+        "description": "Reset all character stats to base values and refund stat points",
+        "backup_tables": ["_Char"],
+        "sql_statements": [
+            """UPDATE dbo._Char
+SET Strength = 20 + (MaxLevel - 1),
+    Intellect = 20 + (MaxLevel - 1),
+    RemainStatPoint = (MaxLevel - 1) * 3
+WHERE CharID > 0""",
+        ],
+    },
 }
 
 
@@ -193,7 +224,7 @@ class BackupWorker(QThread):
 
             self.finished.emit(
                 True,
-                f"Backup created successfully!\n\n" + "\n".join(backup_info),
+                "Backup created successfully!\n\n" + "\n".join(backup_info),
             )
 
         except Exception as e:
@@ -251,7 +282,7 @@ class RestoreWorker(QThread):
 
             self.finished.emit(
                 True,
-                f"Restore completed successfully!\n\n" + "\n".join(restore_info),
+                "Restore completed successfully!\n\n" + "\n".join(restore_info),
             )
 
         except Exception as e:
@@ -314,9 +345,7 @@ class PatchWorker(QThread):
             rows_affected_total = 0
 
             for idx, sql in enumerate(sql_statements, 1):
-                self.progress.emit(
-                    f"Executing statement {idx}/{total_statements}..."
-                )
+                self.progress.emit(f"Executing statement {idx}/{total_statements}...")
                 cursor.execute(sql)
                 rows_affected = cursor.rowcount
                 rows_affected_total += rows_affected
