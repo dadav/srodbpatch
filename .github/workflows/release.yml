@@ -1,0 +1,107 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies and dev tools
+        run: uv sync --group dev
+
+      - name: Install package in editable mode
+        run: uv pip install -e .
+
+      - name: Build with PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          $mssql_path = uv run python -c "import mssql_python, os; print(os.path.dirname(mssql_python.__file__))"
+          uv run pyinstaller --onefile --windowed --name db-patch-tool --hidden-import mssql_python --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtGui --add-data "$mssql_path\libs;mssql_python\libs" --add-binary "$mssql_path\*.pyd;mssql_python" pyinstaller_entrypoint.py
+
+      - name: Build with PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          MSSQL_PATH=$(uv run python -c "import mssql_python, os; print(os.path.dirname(mssql_python.__file__))")
+          uv run pyinstaller --onefile --windowed --name db-patch-tool --hidden-import mssql_python --hidden-import PyQt6 --hidden-import PyQt6.QtCore --hidden-import PyQt6.QtWidgets --hidden-import PyQt6.QtGui --add-data "$MSSQL_PATH/libs:mssql_python/libs" --add-binary "$MSSQL_PATH/*.so:mssql_python" pyinstaller_entrypoint.py
+
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-patch-tool-windows
+          path: dist/db-patch-tool.exe
+          retention-days: 30
+
+      - name: Upload artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-patch-tool-linux
+          path: dist/db-patch-tool
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: db-patch-tool-windows
+          path: release-artifacts
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: db-patch-tool-linux
+          path: release-artifacts
+
+      - name: Extract tag name and version
+        id: tag
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename Windows artifact
+        run: |
+          mv release-artifacts/db-patch-tool.exe "release-artifacts/db-patch-tool-v${{ steps.tag.outputs.VERSION }}-windows.exe"
+
+      - name: Rename Linux artifact
+        run: |
+          mv release-artifacts/db-patch-tool "release-artifacts/db-patch-tool-v${{ steps.tag.outputs.VERSION }}-linux"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG_NAME }}
+          name: Release ${{ steps.tag.outputs.TAG_NAME }}
+          files: |
+            release-artifacts/db-patch-tool-v${{ steps.tag.outputs.VERSION }}-windows.exe
+            release-artifacts/db-patch-tool-v${{ steps.tag.outputs.VERSION }}-linux
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
