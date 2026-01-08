@@ -458,7 +458,32 @@ class DatabasePatchTool(QMainWindow):
         patch_label.setStyleSheet("font-size: 11pt;")
         self.patch_combo = QComboBox()
         self.patch_combo.setMinimumHeight(35)
-        self.patch_combo.setStyleSheet("font-size: 11pt; padding: 5px;")
+        self.patch_combo.setStyleSheet("""
+            QComboBox {
+                font-size: 11pt;
+                padding: 5px;
+                background-color: #f0f0f0;
+                border: 1px solid #aaa;
+                border-radius: 3px;
+                color: black;
+            }
+            QComboBox::drop-down {
+                border: none;
+                padding-right: 10px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #f0f0f0;
+                color: black;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background-color: #0078d4;
+                color: white;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #0078d4;
+                color: white;
+            }
+        """)
 
         for patch_name in PATCHES.keys():
             self.patch_combo.addItem(patch_name)
