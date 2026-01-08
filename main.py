@@ -266,12 +266,61 @@ class RestoreWorker(QThread):
                 backup_table = f"{table}_Backup"
                 self.progress.emit(f"Restoring {table} from backup...")
 
-                cursor.execute(f"DELETE FROM {table}")
-
+                # Get primary key column(s) for this table
                 cursor.execute(f"""
-                    INSERT INTO {table}
-                    SELECT * FROM {backup_table}
+                    SELECT COLUMN_NAME
+                    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                    WHERE OBJECTPROPERTY(OBJECT_ID(CONSTRAINT_SCHEMA + '.' + QUOTENAME(CONSTRAINT_NAME)), 'IsPrimaryKey') = 1
+                    AND TABLE_NAME = '{table}'
                 """)
+                pk_columns = [row[0] for row in cursor.fetchall()]
+
+                # Get all columns for the table
+                cursor.execute(f"""
+                    SELECT COLUMN_NAME
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = '{table}'
+                """)
+                all_columns = [row[0] for row in cursor.fetchall()]
+
+                if pk_columns:
+                    # Build join condition on primary key
+                    join_condition = " AND ".join([f"t.[{col}] = b.[{col}]" for col in pk_columns])
+                    non_pk_columns = [col for col in all_columns if col not in pk_columns]
+
+                    # Update existing rows
+                    if non_pk_columns:
+                        update_set = ", ".join([f"t.[{col}] = b.[{col}]" for col in non_pk_columns])
+                        cursor.execute(f"""
+                            UPDATE t
+                            SET {update_set}
+                            FROM {table} t
+                            INNER JOIN {backup_table} b ON {join_condition}
+                        """)
+
+                    # Insert rows that exist in backup but not in original
+                    pk_match = " AND ".join([f"t.[{col}] = b.[{col}]" for col in pk_columns])
+                    cursor.execute(f"""
+                        INSERT INTO {table}
+                        SELECT b.*
+                        FROM {backup_table} b
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM {table} t WHERE {pk_match}
+                        )
+                    """)
+
+                    # Delete rows that exist in original but not in backup (if no FK references)
+                    cursor.execute(f"""
+                        DELETE t
+                        FROM {table} t
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM {backup_table} b WHERE {join_condition}
+                        )
+                    """)
+                else:
+                    # Fallback: no primary key found, use original delete/insert approach
+                    cursor.execute(f"DELETE FROM {table}")
+                    cursor.execute(f"INSERT INTO {table} SELECT * FROM {backup_table}")
 
                 cursor.execute(f"SELECT COUNT(*) FROM {table}")
                 row_count = cursor.fetchone()[0]
