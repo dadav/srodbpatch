@@ -54,48 +54,7 @@ PATCHES = {
         "description": "Enable all level 120 skills by setting Service = 1",
         "backup_tables": ["_RefSkill"],
         "sql_statements": [
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 1 AND 273",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 276 AND 3481",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 3486 AND 3491",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 3493 AND 8321",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 8328 AND 8328",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 8331 AND 12176",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12178 AND 12186",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12188 AND 12196",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12198 AND 12199",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12201 AND 12206",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12210 AND 12216",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12218 AND 12222",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12225 AND 12306",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 12323 AND 20309",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 20311 AND 20501",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 20503 AND 21266",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 21268 AND 29693",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 29696 AND 30897",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 31038 AND 31086",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 31088 AND 31103",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 31105 AND 31181",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 31190 AND 31196",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 31198 AND 31924",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 32088 AND 32874",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 32891 AND 32894",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 32897 AND 32904",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33042 AND 33045",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33072 AND 33073",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33072 AND 33073",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33077 AND 33287",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33289 AND 33294",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33296 AND 33300",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33302 AND 33307",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33309 AND 33312",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33314 AND 33338",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33340 AND 33347",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33349 AND 33372",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33374 AND 33382",
-            "UPDATE dbo._RefSkill SET Service = 1 WHERE ID BETWEEN 33740 AND 33785",
-            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 7182 AND 7184",
-            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 3436 AND 3440",
-            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 5409 AND 5409",
+            "UPDATE dbo._RefSkill SET Service = 1 WHERE (Basic_Code like 'SKILL_CH%' OR Basic_Code like 'SKILL_EU%') and ReqCommon_MasteryLevel1 <= 120"
         ],
     },
     "Add Silk to All Players": {
@@ -285,12 +244,18 @@ class RestoreWorker(QThread):
 
                 if pk_columns:
                     # Build join condition on primary key
-                    join_condition = " AND ".join([f"t.[{col}] = b.[{col}]" for col in pk_columns])
-                    non_pk_columns = [col for col in all_columns if col not in pk_columns]
+                    join_condition = " AND ".join(
+                        [f"t.[{col}] = b.[{col}]" for col in pk_columns]
+                    )
+                    non_pk_columns = [
+                        col for col in all_columns if col not in pk_columns
+                    ]
 
                     # Update existing rows
                     if non_pk_columns:
-                        update_set = ", ".join([f"t.[{col}] = b.[{col}]" for col in non_pk_columns])
+                        update_set = ", ".join(
+                            [f"t.[{col}] = b.[{col}]" for col in non_pk_columns]
+                        )
                         cursor.execute(f"""
                             UPDATE t
                             SET {update_set}
@@ -299,7 +264,9 @@ class RestoreWorker(QThread):
                         """)
 
                     # Insert rows that exist in backup but not in original
-                    pk_match = " AND ".join([f"t.[{col}] = b.[{col}]" for col in pk_columns])
+                    pk_match = " AND ".join(
+                        [f"t.[{col}] = b.[{col}]" for col in pk_columns]
+                    )
                     cursor.execute(f"""
                         INSERT INTO {table}
                         SELECT b.*
