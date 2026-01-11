@@ -55,9 +55,13 @@ PATCHES = {
         "backup_tables": ["_RefSkill"],
         "sql_statements": [
             "UPDATE dbo._RefSkill SET Service = 1 WHERE (Basic_Code like 'SKILL_CH%' OR Basic_Code like 'SKILL_EU%') and ReqCommon_MasteryLevel1 <= 120",
-            "update [SRO_VT_SHARD].[dbo].[_RefSkill]
-Set Service = '0'
-where id = '8321' OR id = '8328' OR id = '8331' OR id = '8384' OR id = '8418' OR id = '8585' OR id = '8586' OR id = '8587' OR id = '8588' OR id = '8589' OR id = '8590' OR id = '8591' OR id = '8592' OR id = '8593' OR id = '9263' OR id = '9264' OR id = '9265' OR id = '9266' OR id = '9267' OR id = '9268' OR id = '9269' OR id = '9270' OR id = '9271' OR id = '9272' OR id = '9273' OR id = '9274' OR id = '11285' OR id = '11286' OR id = '11287' OR id = '11288' OR id = '11289' OR id = '11323' OR id = '11324' OR id = '11325' OR id = '11326' OR id = '11327' OR id = '11328' OR id = '11329' OR id = '11330' OR id = '11331' OR id = '11332' OR id = '11401' OR id = '11402' OR id = '11403' OR id = '11404' OR id = '11405' OR id = '11414' OR id = '11415' OR id = '11416' OR id = '11417' OR id = '11418' OR id = '11419' OR id = '11420' OR id = '21206' OR id = '21207' OR id = '21218' OR id = '30216' OR id = '30217' OR id = '30218' OR id = '31198' OR id = '33078' OR id = '33381' OR id = '33382'"
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 3437 AND 3440",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 7182 AND 7184",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID = 8384",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 8585 AND 8593",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11286 AND 11289",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11323 AND 11332",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11414 AND 11420",
         ],
     },
     "Add Silk to All Players": {
