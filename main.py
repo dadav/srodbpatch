@@ -64,6 +64,13 @@ PATCHES = {
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11414 AND 11420",
         ],
     },
+    "Activate 12D items": {
+        "description": "Enable 12D items by setting Service = 1",
+        "backup_tables": ["_RefObjCommon"],
+        "sql_statements": [
+            "UPDATE dbo._RefObjCommon SET Service = 1 WHERE CodeName128 LIKE 'ITEM_CH_%_12_%' OR CodeName128 LIKE 'ITEM_EU_%_12_%'"
+        ],
+    },
     "Add Silk to All Players": {
         "description": "Add 10,000 Silk to all active player accounts",
         "backup_tables": ["_Char"],
