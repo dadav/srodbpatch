@@ -58,6 +58,8 @@ PATCHES = {
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 3437 AND 3440",
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 7182 AND 7184",
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID = 8384",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 8321 AND 8331",
+            "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 8417 AND 8418",
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 8585 AND 8593",
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11286 AND 11289",
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11323 AND 11332",
