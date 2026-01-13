@@ -66,6 +66,13 @@ PATCHES = {
             "UPDATE dbo._RefSkill SET Service = 0 WHERE ID BETWEEN 11414 AND 11420",
         ],
     },
+    "Increase MaxStack to 1000": {
+        "description": "Increase maxstack of some items (potions, arrows, etc.), which where already stack-able (to prevent bugs).",
+        "backup_tables": ["_RefObjItem"],
+        "sql_statements": [
+            "UPDATE i SET i.MaxStack=1000 FROM _RefObjItem i INNER JOIN _RefObjCommon c ON i.ID = c.ID WHERE c.CodeName128 LIKE 'ITEM_ETC_%' AND i.MaxStack = 50"
+        ],
+    },
     "Activate 12D items": {
         "description": "Enable 12D items by setting Service = 1",
         "backup_tables": ["_RefObjCommon"],
